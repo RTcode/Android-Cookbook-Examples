@@ -25,7 +25,8 @@ public class Main extends Activity {
 	
     /** Called when the activity is first created. */
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         main = (EditText) findViewById(R.id.mainTextArea);
@@ -40,22 +41,28 @@ public class Main extends Activity {
         lv.setAdapter(mNewDevicesArrayAdapter);
         
         BluetoothAdapter BT = BluetoothAdapter.getDefaultAdapter();
-        if (BT == null) {
+        if (BT == null)
+        {
         	String noDevMsg = "This device does not appear to have a Bluetooth adapter, sorry";
         	main.setText(noDevMsg);
         	Toast.makeText(this, noDevMsg, Toast.LENGTH_LONG).show();
         	return;
         }
-        if (!BT.isEnabled()) {
+        
+        if (!BT.isEnabled())
+        {
         	// Ask user's permission to switch the Bluetooth adapter On. 
         	Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
         	startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
         } 
     }
         
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    	if (requestCode==REQUEST_ENABLE_BT) {
-    		if (resultCode==Activity.RESULT_OK) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+    	if (requestCode==REQUEST_ENABLE_BT)
+    	{
+    		if (resultCode==Activity.RESULT_OK)
+    		{
     			BluetoothAdapter BT = BluetoothAdapter.getDefaultAdapter();
     			String address = BT.getAddress();
     			String name = BT.getName();
@@ -64,19 +71,25 @@ public class Main extends Activity {
     			Toast.makeText(this, connectedMsg, Toast.LENGTH_LONG).show();
     			Button discoverButton = (Button) findViewById(R.id.discoverButton);
     			discoverButton.setOnClickListener(discoverButtonHandler);
-    		} else {
+    		} 
+    		else
+    		{
     			Toast.makeText(this, "Failed to enable Bluetooth adapter!", Toast.LENGTH_LONG).show();
     		}
-    	} else {
+    	} 
+    	else 
+    	{
     		Toast.makeText(this, "Unknown RequestCode " + requestCode, Toast.LENGTH_LONG).show();
     	}
     }
     
     /** When the user clicks the Discover button, get the list of paired devices
      */
-    OnClickListener discoverButtonHandler = new OnClickListener() {
+    OnClickListener discoverButtonHandler = new OnClickListener()
+    {
 		@Override
-		public void onClick(View v) {
+		public void onClick(View v)
+		{
 			Log.d(TAG, "in onClick(" + v + ")");
 			// IntentFilter for found devices
 			IntentFilter foundFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
@@ -88,7 +101,8 @@ public class Main extends Activity {
 		}
 	};
 	
-	protected void onDestroy() {
+	protected void onDestroy()
+	{
 		unregisterReceiver(mReceiver);
 		super.onDestroy();
 	}
@@ -96,29 +110,35 @@ public class Main extends Activity {
 	/** Receiver for the BlueTooth Discovery Intent; put the paired devices
 	 * into the viewable list.
 	 */
-	private final BroadcastReceiver mReceiver = new BroadcastReceiver() {    		
-			@Override
-    		public void onReceive(Context context, Intent intent) {
-				String action = intent.getAction();
-				Log.d(TAG, "in onReceive, action = " + action);
-    			
-    			if (BluetoothDevice.ACTION_FOUND.equals(action)){
-    				BluetoothDevice btDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-    				
-    				if(btDevice.getBondState() != BluetoothDevice.BOND_BONDED){
-    					// XXX use a better type and a Layout in the visible list
-    					mNewDevicesArrayAdapter.add(btDevice.getName()+"\n"+btDevice.getAddress());
+	private final BroadcastReceiver mReceiver = new BroadcastReceiver()
+	{    		
+		@Override
+		public void onReceive(Context context, Intent intent)
+		{
+			String action = intent.getAction();
+			Log.d(TAG, "in onReceive, action = " + action);
+			
+			if (BluetoothDevice.ACTION_FOUND.equals(action))
+			{
+				BluetoothDevice btDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+				
+				if(btDevice.getBondState() != BluetoothDevice.BOND_BONDED)
+				{
+					// XXX use a better type and a Layout in the visible list
+					mNewDevicesArrayAdapter.add(btDevice.getName()+"\n"+btDevice.getAddress());
+				}
+    		}	
+			else
+				if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action))
+				{
+					setProgressBarIndeterminateVisibility(false);
+					setTitle(R.string.select_device);
+					if (mNewDevicesArrayAdapter.getCount() == 0)
+					{
+						String noDevice = getResources().getText(R.string.none_paired).toString();
+						mNewDevicesArrayAdapter.add(noDevice);
     				}
-    			}
-    			else
-    				if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)){
-    					setProgressBarIndeterminateVisibility(false);
-    					setTitle(R.string.select_device);
-    					if (mNewDevicesArrayAdapter.getCount() == 0){
-    						String noDevice = getResources().getText(R.string.none_paired).toString();
-    						mNewDevicesArrayAdapter.add(noDevice);
-    					}
-    				}   			
-    		}
-    	};
+    			}   			
+    	}
+    };
 }
